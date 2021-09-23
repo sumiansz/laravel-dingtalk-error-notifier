@@ -2,8 +2,8 @@
 
 namespace Sumian\DingtalkErrorNotifier;
 
-use Monolog\Handler\StreamHandler;
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\Handler\StreamHandler;
 
 class DingtalkRobotHandler extends AbstractProcessingHandler
 {
@@ -12,7 +12,12 @@ class DingtalkRobotHandler extends AbstractProcessingHandler
         $channelName = config('notifier.ding_channel');
         $dingChannel = config("ding.{$channelName}");
         if ($dingChannel) {
-            ding()->with($channelName)->text(json_encode($record, JSON_UNESCAPED_UNICODE));
+            if (!empty($record['formatted'])) {
+                $message = (string)$record['formatted'];
+            } else {
+                $message = json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+            }
+            ding()->with($channelName)->text($message);
         }
     }
 }
